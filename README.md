@@ -1,40 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Guía Rápida: Uso de Playwright con Yarn y Codegen para Testing de Next.js
 
-## Getting Started
+---
 
-First, run the development server:
+## 1. Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn add -D playwright #Instala Playwright
+yarn playwright install #Instala los navegadores
+```
+## 2. Inicializar proyecto Playwright
+
+```bash
+npx playwright test init
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 3. Generar tests con Codegen
+Escribir este comando en la consola:
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```bash
+yarn playwright codegen http://localhost:3000
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+- Esto abrirá un navegador con tu app.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+- Interactúa con la página para que Playwright genere el código automáticamente.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Copia el código generado para crear tus tests.
 
-## Learn More
+## 4. Crear archivo de test
 
-To learn more about Next.js, take a look at the following resources:
+```ts
+import { test, expect } from '@playwright/test';
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+test('llenar y enviar formulario', async ({ page }) => {
+  // Pegar aquí el código generado por codegen
+});
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 5. Ejecutar los tests
 
-## Deploy on Vercel
+```bash
+yarn playwright test
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 6. Ver reporte HTML
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+```bash
+yarn playwright show-report
+```
+
+## 7. Configuración recomendada de **playwright.config.ts**
+
+```ts
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  retries: 0,
+  reporter: 'html',
+  use: {
+    trace: 'on-first-retry',
+    headless: false,
+    video: 'on',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
+});
+```
+
+## Notas importantes
+- No es necesario instalar nada adicional para usar codegen, viene incluido con Playwright.
+
+- Es importante correr yarn playwright install para descargar los navegadores.
+- El uso **headless: false**  es para ver los tests en ejecución mientras desarrollas. Se cambia a **headless: true** para ejecuciones en CI o cuando no se necesita la UI.
